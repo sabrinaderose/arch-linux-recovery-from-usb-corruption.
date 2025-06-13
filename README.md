@@ -108,7 +108,7 @@ useradd -mG wheel sabrina
 ## 🧠 Recommendations
 
 > [!TIP]
-> Turn this repo into a reference tool for future recoveries or portfolio use.
+> Reference tool for future recoveries or portfolio use.
 
 - Keep a **rescue ISO** on a dedicated USB with **Ventoy** or GRUB tools.
 - Maintain a log of your disk layout and **fstab** entries.
@@ -116,24 +116,6 @@ useradd -mG wheel sabrina
 - Store boot configs, partitioning scripts, and recovery logs in GitHub.
 
 ---
-
-## 📸 Visual Documentation (Optional)
-
-Consider adding:
-
-- Screenshots of `cgdisk` partitioning steps
-- GRUB installation logs
-- Boot error messages from real terminal sessions (use `asciinema`)
-
----
-
-## 🎓 Real-World Value
-
-This repo reflects:
-
-- ✅ Real-world Linux troubleshooting under stress
-- 🧩 Deep understanding of bootloader behavior and disk partitioning
-- 🔧 Resourcefulness in recovering from system-wide failure
 
 > [!NOTE]
 > See also: [`arch-linux-hyprland-nvidia-failure`](https://github.com/sabrinaderose/arch-linux-hyprland-nvidia-failure) for the original install that was lost.
