@@ -118,4 +118,4 @@ useradd -mG wheel sabrina
 ---
 
 > [!NOTE]
-> See also: [`arch-linux-hyprland-nvidia-failure`](https://github.com/sabrinaderose/arch-linux-hyprland-nvidia-failure) for the original install that was lost.
+> See also: [`arch-linux-hyprland-nvidia-failure`](https://github.com/sabrinaderose/arch-linux-hyprland-nvidia-failures) for the original install that was lost.
