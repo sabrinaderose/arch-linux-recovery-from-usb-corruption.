@@ -1,7 +1,7 @@
 # 💥 Arch Linux Nuke & Recovery
 
 > [!IMPORTANT]
-> This repository documents a full system failure and recovery caused by the Windows Media Creation Tool. It serves as a reference for disaster recovery, ISO imaging best practices, and surviving catastrophic system loss.
+> This repository documents a complete system failure and recovery caused by the Windows Media Creation Tool. It references disaster recovery, ISO imaging best practices, and surviving catastrophic system loss.
 
 ---
 
@@ -16,11 +16,11 @@ This repo covers the complete breakdown of an **Arch Linux + Hyprland** setup af
 ### ❌ The Failure
 
 - Used **Windows Media Creation Tool** to reimage a USB for Windows.
-- Tool overwrote the **bootable Arch Linux USB** and corrupted all partitions.
+- The tool overwrote the **bootable Arch Linux USB** and corrupted all partitions.
 - Entire system became unbootable — **GRUB, rEFInd, EFI = gone**.
 - Other USBs were also rendered unreadable (e.g., Nobara ISO).
-- One USB was even **bricked** by Windows Imaging Tool.
-- Net result: **20+ hours of Arch + Hyprland work lost.**
+- One USB was **bricked** by Windows Imaging Tool.
+- Net result: **16+ hours of Arch + Hyprland work lost.**
 
 ---
 
@@ -108,9 +108,9 @@ useradd -mG wheel sabrina
 ## 🧠 Recommendations
 
 > [!TIP]
-> Reference tool for future recoveries or portfolio use.
+> Reference tool for future recoveries
 
-- Keep a **rescue ISO** on a dedicated USB with **Ventoy** or GRUB tools.
+- Keep a **rescue ISO** on a dedicated USB with **Ventoy** or GRUB tools. Be careful with Ventoy, as it may not always be completely stable enough to be relied on for recovery.
 - Maintain a log of your disk layout and **fstab** entries.
 - Test ISOs on VMs before flashing to real hardware.
 - Store boot configs, partitioning scripts, and recovery logs in GitHub.
