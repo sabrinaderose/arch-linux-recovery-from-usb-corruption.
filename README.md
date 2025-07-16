@@ -1,121 +1,153 @@
-# 💥 Arch Linux Nuke & Recovery
+# Arch Linux Disaster Recovery: Rebuilding from USB & Bootloader Corruption
 
-> [!IMPORTANT]
-> This repository documents a complete system failure and recovery caused by the Windows Media Creation Tool. It references disaster recovery, ISO imaging best practices, and surviving catastrophic system loss.
-
----
-
-## 📘 Summary
-
-This repo covers the complete breakdown of an **Arch Linux + Hyprland** setup after using the **Windows Media Creation Tool**, which corrupted both the system and the bootable USBs. It chronicles recovery from a total loss of partitions, bootloaders, and ISOs — a real-world Linux troubleshooting experience.
+**Author:** [sabrinaderose](https://github.com/sabrinaderose)  
+**Date:** June 13, 2025  
+**Repo:** https://github.com/sabrinaderose/arch-linux-recovery-from-usb-corruption  
+**Category:** Linux Disaster Recovery | Bootloader Rebuild | Home Lab  
+**Target Audience:** Recruiters & Hiring Managers  
+**Certifications Aligned:** LPI Linux Essentials (Completed), CompTIA Linux+ (Planned)
 
 ---
 
-## ⚠️ Event Timeline
+## 🔍 Objective
 
-### ❌ The Failure
+This repository documents a real-world Linux disaster recovery scenario caused by accidental use of the Windows Media Creation Tool. The result was a completely unbootable Arch Linux system—both GRUB and rEFInd bootloaders were destroyed, and multiple USB drives were rendered unreadable.
 
-- Used **Windows Media Creation Tool** to reimage a USB for Windows.
-- The tool overwrote the **bootable Arch Linux USB** and corrupted all partitions.
-- Entire system became unbootable — **GRUB, rEFInd, EFI = gone**.
-- Other USBs were also rendered unreadable (e.g., Nobara ISO).
-- One USB was **bricked** by Windows Imaging Tool.
-- Net result: **16+ hours of Arch + Hyprland work lost.**
+The goal was to fully rebuild Arch Linux from scratch under time constraints using terminal-only tools and a second machine for ISO management. This effort was focused on restoring core system operability (not GUI), ensuring bootloader integrity, and capturing a realistic homelab experience valuable to system administration roles.
 
 ---
 
-## 🛠️ Recovery Actions
+## 🛠️ Environment & Tooling
 
-### ✅ Step 1: Recovery Machine (Fresh USB Imaging)
+### Hardware
 
-- Used a **secondary Windows laptop** to re-download Arch ISO.
-- Created a working bootable USB using:
+**Primary Workstation:**  
+- AMD Ryzen 7 5700G, 32GB RAM  
+- NVIDIA RTX 3060 (12GB), 2 × 1TB SSDs (UEFI Boot)  
+- Wi-Fi Only Network Access
 
+**Recovery System:**  
+- Lenovo IdeaPad 3, Ryzen 5 5500U, 8GB RAM  
+- 256GB SSD used for ISO re-downloads and USB flashing
+
+**USB Drives:**  
+- 2x Maspen 64GB (corrupted)
+- 1x Memorex 32GB (used for recovery)
+
+### Software Stack
+
+- Arch Linux, Kernel 6.9.x.arch1-1  
+- GRUB + rEFInd Bootloaders  
+- Terminal Tools: `cgdisk`, `mkfs`, `pacstrap`, `arch-chroot`, `neovim`  
+- Imaging Tools: `dd`, balenaEtcher, Ventoy, HDD Low-Level Format Tool  
+- Attempted DE: Hyprland (abandoned due to NVIDIA issues)
+
+---
+
+## 🔧 Recovery Process Summary
+
+### ✅ Phase 1: USB Rescue & ISO Prep
+- Attempted recovery with corrupted USBs (failed)
+- Used `balenaEtcher` (unstable), then switched to `dd` (success)
+- Verified UEFI boot mode and BIOS config
+
+### ✅ Phase 2: Partitioning & Installation
 ```bash
-# Safer alternatives to avoid corruption:
-balenaEtcher
-ventoy
-dd if=archlinux.iso of=/dev/sdX bs=4M status=progress oflag=sync
-```
+# Disk layout
+/dev/sda1 - EFI (512M)
+/dev/sda2 - Root
+/dev/sda3 - Home
 
----
-
-### ✅ Step 2: Repartition and Fresh Install
-
-```bash
-cgdisk /dev/sda
-# Created:
-# - /dev/sda1: EFI
-# - /dev/sda2: /
-# - /dev/sda3: /home
-
+# Filesystem creation
 mkfs.fat -F32 /dev/sda1
 mkfs.ext4 /dev/sda2
 mkfs.ext4 /dev/sda3
 
+# Mount and base install
 mount /dev/sda2 /mnt
 mkdir /mnt/boot
 mount /dev/sda1 /mnt/boot
-```
-
-> [!NOTE]
-> This layout matches a typical secure and modular Arch install.
-
-Installed base system:
-
-```bash
 pacstrap /mnt base linux linux-firmware grub efibootmgr sudo neovim
-```
-
----
-
-### ✅ Step 3: Reconfigure and Reboot
-
-```bash
 genfstab -U /mnt >> /mnt/etc/fstab
 arch-chroot /mnt
 
+# Bootloader
 grub-install --target=x86_64-efi --efi-directory=/boot --bootloader-id=GRUB
 grub-mkconfig -o /boot/grub/grub.cfg
 
-passwd
+# User
 useradd -mG wheel sabrina
+passwd
 ```
 
----
+### ✅ Phase 3: Live Testing
+- Booted successfully into CLI with GRUB
+- Wi-Fi confirmed functional using NetworkManager
+- USB boot validated on multiple systems
 
-## 💡 Simulated Log Output
-
-```text
-[  +0.0001] BIOS: No bootable device found
-[  +0.0003] rEFInd: missing
-[  +0.0005] grub rescue> _
-[  +0.0008] Error: unknown filesystem
-[  +0.0010] Cannot find command 'normal'
-```
+### ⚠️ Phase 4: Troubleshooting Highlights
+- **GRUB rescue prompt** due to EFI wipe → resolved via chroot + reinstall
+- **Ventoy ISO boot loops** → replaced with `dd`
+- **Hyprland monitor rotation ignored** → suspected NVIDIA driver conflict
 
 ---
 
-## 🔍 Lessons Learned
+## 🧠 Lessons Learned
 
-- ❌ **NEVER** use Windows ISO tools on multiboot or Linux-focused systems.
-- ✅ Always check the USB device path (`/dev/sdX`) before writing.
-- 🔁 EFI bootloaders (GRUB, rEFInd) are fragile if overwritten.
-- 💾 Backups aren’t optional — they’re *essential*.
-
----
-
-## 🧠 Recommendations
-
-> [!TIP]
-> Reference tool for future recoveries
-
-- Keep a **rescue ISO** on a dedicated USB with **Ventoy** or GRUB tools. Be careful with Ventoy, as it may not always be completely stable enough to be relied on for recovery.
-- Maintain a log of your disk layout and **fstab** entries.
-- Test ISOs on VMs before flashing to real hardware.
-- Store boot configs, partitioning scripts, and recovery logs in GitHub.
+- EFI bootloaders are fragile—manual recovery is a critical skill
+- Microsoft Media Creation Tool is destructive in multiboot systems
+- `dd` is more reliable for ISO flashing than GUI alternatives
+- BIOS settings (UEFI mode, Secure Boot) must be double-checked at install
+- Hyprland is currently unreliable with NVIDIA (especially rotated displays)
+- Documenting every command and decision accelerates future recovery
 
 ---
 
-> [!NOTE]
-> See also: [`arch-linux-hyprland-nvidia-failure`](https://github.com/sabrinaderose/arch-linux-hyprland-nvidia-failures) for the original install that was lost.
+## 📈 Outcome & Skills Demonstrated
+
+**Final System State:**  
+- Clean CLI-based Arch Linux system with functional GRUB bootloader  
+- Deferred GUI setup due to NVIDIA compatibility issues
+
+**Skills Highlighted:**  
+- Disaster recovery & Linux system rebuild  
+- Terminal-based partitioning and mount logic  
+- Bootloader troubleshooting and reinstallation  
+- USB flashing, ISO verification, and BIOS validation  
+- Under-pressure problem-solving using only CLI tools
+
+---
+
+## 📂 Key Artifacts
+
+| File/Path                 | Description                              |
+|--------------------------|------------------------------------------|
+| `/etc/fstab`             | Final mounted partition map              |
+| `/boot/grub/grub.cfg`    | Verified bootloader config               |
+| `.bash_history`          | Recovery command history                 |
+| `dmesg` output            | USB detection logs (hardware layer)      |
+
+---
+
+## 🧾 Interview Summary (STAR Format)
+
+**Situation:** System failure caused by USB overwrite and EFI wipe from Microsoft tools  
+**Task:** Recover Arch Linux OS and bootloader with no GUI or prior backups  
+**Action:** Created clean recovery USB, manually partitioned drive, reinstalled GRUB, and verified networking  
+**Result:** Fully recovered CLI-based Linux system; GUI deferred to prioritize core stability
+
+---
+
+## 📚 References
+
+- Arch Wiki – [Installation Guide](https://wiki.archlinux.org/title/Installation_guide)  
+- Hyprland GitHub – Compositor configs & known NVIDIA issues  
+- Reddit – Wayland/NVIDIA compatibility discussions  
+- LinuxQuestions.org – USB recovery advice  
+- Chris Titus Tech – Dual boot best practices
+
+---
+
+## 📌 Final Note
+
+This repo was built to document a **real recovery**, not a sandboxed lab. It showcases foundational Linux administration skills, troubleshooting under duress, and the mindset of a professional who treats even personal setups with production-level discipline.
